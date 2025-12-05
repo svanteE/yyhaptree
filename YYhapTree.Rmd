@@ -1,0 +1,2500 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+---
+title: "Y yin yang mutation tree"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+```{css, echo=FALSE}
+pre{
+  overflow:hidden;
+}
+```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(message=FALSE)
+```
+
+
+```{r echo=FALSE}
+library(webshot2)
+rm(list=ls())
+options(width=100)
+```
+
+```{r echo=F}
+load("m3.RData")
+load("adM.RData")
+load("prof171.RData")
+source("extract.R")
+short=c("AfrCarib","AfrUSA","Bengali","ChinaDai","EurUtah","ChinaHanB","ChinaHanS","Columbia","NigeriaE","Finland","British","GujaratiUSA","Gambia","Iberian","TelugiUK","Tokyo","Vietnam","Kenya","SierraLeo","MexicoUSA","Peru","Pakistan","PuertoRico","TamilUK","Toscani","NigeriaY")
+m3$ori=factor(m3$ori,labels=short)
+L=length(profs)+1
+prs=extract(profs,x$pr,uL=F)
+num=apply(adM,1,function(x) (1:L)[x>0])
+for(i in 1:(L-1)){
+  h=unlist(prs[num[[i]]])
+  if(is.null(h)) {
+    profs[[i]]$inHg=prs[[i]]
+    next
+  }
+  profs[[i]]$inHg=prs[[i]]=prs[[i]][-match(h,prs[[i]])]
+  names(profs[[i]]$origin)=short
+}
+inVertex=function(x,m3){
+  h=x$inHg
+  if(length(h)==0) return("No profiles")
+  g=m3[h,8072:8073]
+  g$n=1
+  aggregate(n~.,g,sum)
+}
+
+```
+## Tree of yin yang haplotypes
+
+A yin yang haplotype(yyhap) is a set of snps, where we only observe two haplotypes.
+
+A simple example of a yyhap with only 5 snps:
+
+
+```{r echo=F}
+h=profs[[15]]$tab
+names(h)=sapply(names(h),function(x) strsplit(x,"_")[[1]][1])
+h
+```
+Our study is based on data from 1000 genomes(1000G), which has 1223 profiles. For the actual yyhap 977 individuals have the common type AGCCC. 238 of the rare type CTTTA are Africans. The remaining 8 are Puerto Rican(4), Colombian(3) and Mexican in Los Angeles(1).
+
+The study is limited to the most prevalent snps, which resulted in choosing 8071 snps.
+
+
+
+We have identified 171 yyhaps, which cover 7294 of the 8071 prevalent snps.
+
+The length of yyhaps(number of snps) vary a lot as illustrated below. We shall denote the length of a yyhap by LODY.
+
+
+
+```{r echo=F}
+t=table(extract(profs,length(x$snp)))
+dimnames(t)[[1]]=paste("LODY=",dimnames(t)[[1]],sep="")
+t
+#kable(t,"html")%>%kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+The longest yyhap has LODY=326. Fex we see 3 with LODY=90. And 13 with LODY=2.
+The most extreme:
+
+```{r echo=FALSE}
+h=profs[[99]]$tab
+n=names(h)
+a=strsplit(n,"_")
+r=c()
+for( i in a){
+  if(length(i)==2) r=c(r,i[1])  
+    if(length(i)==3) r=c(r,paste(i[1:2],collapse="_"))
+}
+names(h)=c(r,"n")
+rownames(h)=NULL
+print.data.frame(h)
+```
+
+It is amazing that 326 positions spread out on the first half of the chromosome are locked to two haplotypes. The first 5 positions in GRCh38 are (2.858.361, 2.884.846, 2.920.806, 2.960.384, 2.986.692).The middle 5 positions are (14.437.648,14.527.109,14.566.758,14.576.354,14.591.61)  and last 5 positions are (26.512.116, 26.537.837, 26.581.157,26.598.736, 26.606.199).
+We observe 20 persons having the rare yyhap. And all 20 persons from Tokyo. It is tempting to think about radiation.
+
+
+An even more surprising observation is that the yyhaps can be organised in a tree:
+
+![][completetree]
+
+Adam has 4 descendents corresponding to 4 different yyhaps, which splits the database into 4 distinct groups, i.e an individual carries  one and only one of these 4 yyhaps. This splitting continues based on yyhaps. At each node(haplogroup) the label counts how many individuals that are associated with the node, i.e. they carry the actual yyhap and all yyhaps on the path from Adam to the node, but none of the descending yyhaps. The left part of the tree is the most polymorphic and primarily rooted in Africa. The most extreme is a leaf haplogroup determined by 20 yyhaps. This haplogroup consists of 16 individuals from Kenya.
+
+We start by inspecting a portion of the tree attached to the root of the tree. We will often use dendograms to illustrate the diversity of haplogroups. They are based on Manhattan distance - the number of differing snps. And clustered by single linkage, i.e. distance between clusters is the minimal distance between members of the clusters.
+
+```{r echo=FALSE,eval=FALSE}
+nam=names(m3)[1:8071]
+oneNam=function(x){
+  y=strsplit(x,"_")[[1]]
+  if(length(y)==2) return(y[1])
+  if(length(y)==3) return(as.numeric(y[2]))
+  paste(y[1],y[2],y[3],sep="_")
+}
+h=sapply(nam,oneNam)
+oneS=function(x){
+  substring(x,1,1)=="r"
+}
+
+rs=sapply(h,oneS)
+rss=h[rs]
+library(rsnps)
+rsno=ncbi_snp_query(rss)
+rsid=as.vector(rsno[,5])[[1]]
+bp=as.vector(rsno[,3])[[1]]
+iii=match(rsid,rss,0)
+rss1=rss
+yt=(1:length(rsid))[iii==0]
+jjj=iii[-yt]
+rss1[jjj]=bp[-yt]
+rsTo38=h
+rsTo38[rs]=rss1
+save(rsTo38,file="rsTo38.RData")
+oneNo=function(x,pr,rs2){
+  h=as.numeric(rs2[match(pr[[x]]$snp,names(rs2))])
+  h[!is.na(h)]
+}
+
+kenya=c("a","aa","aaa","aaa1","aaa1a","aaa1aa","aaa1aaa","aaa1aaa1","aaa1aaa1a","aaa1aaa1aa","aaa1aaa1aaa","aaa1aaa1aaa1","aaa1aaa1aaa1a","aaa1aaa1aaa1aa","aaa1aaa1aaa1aaa","aaa1aaa1aaa1aaa1","aaa1aaa1aaa1aaa2","aaa1aaa1aaa1aaa3","aaa1aaa1aaa1aaa13a","aaa1aaa1aaa1aaa3a1")
+
+nokenya=lapply(kenya,oneNo,pr=profs,rs2=rsTo38)
+library(pals)
+palette=glasbey(20)
+all=unlist(nokenya)
+xl=c(0,max(all))
+yl=c(0,1)
+plot(xl,yl,type="n",xlab="position",ylab="")
+for(i in 1:20){
+  if(i==19) next
+  xs=nokenya[[i]]
+  for(j in 1:length(xs)) lines(c(xs[j],xs[j]),yl,lwd=1,col=palette[i])
+}
+legend("topleft",legend=ant,col=col,pch=19,title="LODY",cex=.45)
+
+xl=c(2.75e+06,3.05e+06)
+yl=c(0,1)
+plot(xl,yl,type="n",xlab="position",ylab="")
+for(i in 1:20){
+  if(i==19) next
+  xs=nokenya[[i]]
+  for(j in 1:length(xs)) lines(c(xs[j],xs[j]),yl,lwd=1,col=palette[i])
+}
+legend("topleft",legend=ant,col=col,pch=19,title="LODY",cex=.45)
+
+xl=c(1.88e+07,2.01e+07)
+yl=c(0,1)
+plot(xl,yl,type="n",xlab="position",ylab="")
+for(i in 1:20){
+  if(i==19) next
+  xs=nokenya[[i]]
+  for(j in 1:length(xs)) lines(c(xs[j],xs[j]),yl,lwd=1,col=palette[i])
+}
+legend("topleft",legend=ant,col=col,pch=19,title="LODY",cex=.45)
+
+xl=c(2.03e+07,2.23e+07)
+yl=c(0,1)
+plot(xl,yl,type="n",xlab="position",ylab="")
+for(i in 1:20){
+  if(i==19) next
+  xs=nokenya[[i]]
+  for(j in 1:length(xs)) lines(c(xs[j],xs[j]),yl,lwd=1,col=palette[i])
+}
+legend("topleft",legend=ant,col=col,pch=19,title="LODY",cex=.45)
+
+```
+
+
+
+### Root of tree.
+
+![][adam]
+
+As noted before, the  1223 profiles of the database are split by 4 different yyhaps, which defines haplogroups denoted by **a**,**b**,**c** and **d**.
+In the graph the vertex name "id;n1,n2" is the haplogroup name(id), the number of profiles with the yyhap(n1) and the number of profiles associated with the haplogroup(n2), i.e. they dont have any of the yyhaps associated with the subbranches. 
+
+- **a** LODY=13. 584 individuals have this yyhap, but none belongs to the haplogroup, where individuals are split into haplogroups **aa** and **ab**. Actually no individuals are observed in these haplogroups as well. We shall come back to their descendents.
+- **b** LODY=104. 371 individuals have this yyhap, but none belongs to the haplogroup, where individuals are split into haplogroups **ba** and **bb**. Only 3 individual are observed in those haplogroups. We shall come back to its descendents.
+- **c** LODY=5 has a single individual. We shall come back to its descendents.
+- **d** LODY=22 is rare and at the same time close to **Adam** as we actually observe 8 individuals differing from **Adam** by one yyhap only.
+
+### **d** branch
+
+- **d** LODY=22. Haplogroup of 8 individuals close to **Adam**. They agree on all 8071 snps - except for 5. Dendrogram of a cluster analysis based on these 5 varying snps:
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+library("dendextend")
+library(RColorBrewer)
+names(HapTable)=su1
+h=HapTable[["d"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",1)
+#dend=set_labels(dend,labels=profs[["bab2a"]]$HG)
+dend=set_labels(dend,labels=profs[["d"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.1,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.9)
+
+```
+
+
+Labels of individuals display the isoHaplogroup(iHg) and origin. 5 profiles are identical on all 8071 snps, but have 3 different iHg. 3 profiles diviates from them by 1 mutation on different snps. It is tempting to suppose that the type is rooted in Toscani in Italy(Toscani)  and has migrated to Iberian populations in Spain(Iberian), Puerto Rico, Mexican Ancestry in Los Angeles, California, United States(MexicoUSA) and Columbia. 
+
+- **d1** LODY=212. 4 persons from Sri Lankan Tamil in the United Kingdom(TamilUK), 2 persons from Indian Telugu in the United Kingdom(TelugiUK) and one from Bengali in Bangladesh(Bengali).
+Surprising. An immigrant from Toscani invading south asia?
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["d1"]]$HG)
+```
+
+
+The iHg was obtained from
+https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/supporting/chrY/
+
+
+- **d2** LODY=90 and south asian. 1 TelugiUK, 1TamilUK and 1 Punjabi in Lahore, Pakistan(Pakistan).
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["d2"]]$HG)
+```
+- **d3** LODY=21. 3 TamilUK and 2 TelugiUK.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["d3"]]$HG)
+```
+
+- **d4** LODY=2. Leaf node of south asian origin. They agree on all 8071 snps - except for 3. Dendrogram of a cluster analysis:
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+library("dendextend")
+library(RColorBrewer)
+names(HapTable)=su1
+h=HapTable[["d4"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",1)
+dend=set_labels(dend,labels=profs[["d4"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.9)
+
+```
+
+
+
+where GujaratiUSA is Gujarati Indians in Houston, Texas, United States. 
+9 persons agree on all 8071 snps, a group of 2 differs by 1 mutation and a single individual differs by 2 mutations. Notable, that so many in the **d** branch have left their asian origin? Or is it sampling bias?
+
+### **b** branch.
+
+![][b]
+
+
+- **b** LODY=104.
+- **bb** LODY=19. One individual from each of Bengali, TelugiUK and Pakistan, ie. all SAS.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["bb"]]$HG)
+```
+
+The rest of the branch is haplotype subclades of Q1a.
+
+- **bb1** LODY=28. One from Peru, 2 from Kinh in Ho Chi Minh City, Vietnam(Vietnam) and 1 from Pakistan. Ie mostly Asian.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["bb1"]]$HG)
+```
+- **bb2** LODY=47. Two from TamilUK.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["bb2"]]$HG)
+```
+- **bb3** LODY=41. Two from MexicoUSA.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["bb3"]]$HG)
+```
+- **bb4** LODY=14. Leaf with dendogram  of south americans differing on 22 snps:
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["bb4"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",1)
+dend=set_labels(dend,labels=profs[["bb4"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=1,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.9)
+
+```
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["bb4"]]$HG)
+```
+
+
+
+- **ba** LODY=37.
+
+
+
+- **bab** LODY=163. One from Pakistan.
+This branch is haplogroup R2a or subclades of R2a.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["bab"]]$HG)
+```
+
+- **bab1** LODY=5. One from Pakistan, 2 from GujaratiUSA, 1 from TelugiUK and one from Bengali. All SAS.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["bab1"]]$HG)
+```
+- **bab2** LODY=11. 
+- **bab2a** LODY=4. Leaf with table of asians:
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["bab2a"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",1)
+dend=set_labels(dend,labels=profs[["bab2a"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.9)
+```
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["bab2a"]]$HG)
+```
+
+- **bab2b** LODY=4. Leaf with dendogram of south asians differing on 6 snps:
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["bab2b"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",1)
+dend=set_labels(dend,labels=profs[["bab2b"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.9)
+```
+
+
+
+- **baa** LODY=4.
+- **baab** LODY=150. One person from Utah residents with Northern and Western European ancestry(EurUtah).
+
+The branch contain subclades og haplogroup R1a1a1.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["baab"]]$HG)
+```
+
+- **baab1** LODY=7. One person from EurUtah, 3 from Finland and 4 from Great Britain(British).
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["baab1"]]$HG)
+```
+- **baab2** LODY=2. Dendogram with 27 profiles in the haplogroup varying on 19 snps:
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["baab2"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",.8)
+dend=set_labels(dend,labels=profs[["baab2"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.7)
+```
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["baab2"]]$HG)
+```
+
+- **baab3** LODY=6. Dendogram of south asians based on 10 varying snps.
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["baab3"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",.8)
+dend=set_labels(dend,labels=profs[["baab3"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("top", legend = group_levels, fill = colors, title = "origin", cex=.7)
+```
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["baab3"]]$HG)
+```
+
+
+- **baab3a** LODY=2. Dendogram of south asians based on 7 varying snps.
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["baab3a"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",1)
+dend=set_labels(dend,labels=profs[["baab3a"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.7)
+```
+
+
+
+- **baab3b** LODY=2. Dendogram of south asians based on 8 varying snps.
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["baab3b"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",.8)
+dend=set_labels(dend,labels=profs[["baab3b"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.7)
+```
+
+- **baaa** LODY=27. One from Lima, Peru(Peru).
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["baaa"]]$HG)
+```
+This branch is subclades of haplogroup R1b1.
+
+- **baaa1** LODY=4. One from Puerto Rico(PuertoRico).
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["baaa1"]]$HG)
+```
+
+- **baaa2** LODY=82. Mixed origin. 1 from each of Columbia, ChinaHanB, Iberian, Toscani and GujaratiUSA.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["baaa2"]]$HG)
+```
+
+
+
+- **baaa3** LODY=3. One from	each of Toscani and PuertoRico.
+
+This branch is haplogroup R1b1a2a1 or subclades thereof.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["baaa3"]]$HG)
+```
+
+- **baaa4** LODY=10. Haplogroup of primarily europeans. They agree on all 8071 snps - except for 11 snps. A cluster analysis yields the following dendogram:
+
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["baaa4"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",.6)
+dend=set_labels(dend,labels=profs[["baaa4"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75)
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.7)
+
+```
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["baaa4"]]$HG)
+```
+
+- **baaa4a** LODY=2. Large haplogroup of mostly europeans and secondly south americans.
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["baaa4a"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+zz=apply(d1,2,sum)
+d2=d3=d1[,zz==1]
+d3$n=1
+d4=aggregate(n~.,d3,sum)
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",.6)
+dend=set_labels(dend,labels=profs[["baaa4a"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Paired")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.9)
+```
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["baaa4a"]]$HG)
+```
+
+
+- **baaa4b** LODY=3. Non asian dendogram :
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["baaa4b"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",.5)
+dend=set_labels(dend,labels=profs[["baaa4b"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("top", legend = group_levels, fill = colors, title = "origin", cex=.6)
+```
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["baaa4b"]]$HG)
+```
+
+- **baaa4aa** LODY=4. One from African Caribbean in Barbados(AfrCarib) and one British.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["baaa4aa"]]$HG)
+```
+
+- **baaa4aa1** LODY=2. Non asian dendogram on 14 differing snps:
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["baaa4aa1"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",.7)
+dend=set_labels(dend,labels=profs[["baaa4aa1"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.6)
+```
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["baaa4aa1"]]$HG)
+```
+
+- **baaa4ab** LODY=4. Mostly european with dendogram based on 4 differing snps:
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["baaa4ab"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",.7)
+dend=set_labels(dend,labels=profs[["baaa4ab"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("top", legend = group_levels, fill = colors, title = "origin", cex=.6)
+```
+
+
+- **baaa4ab1** LODY=9. 2 Iberia and one from Colombian in Medellín, Colombia(Columbia).
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["baaa4ab1"]]$HG)
+```
+
+- **baaa4ab2** LODY=2. Leaf dendrogram of mostly south american supplied with Iberian. Based on 7 differing snps.
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["baaa4ab2"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",.7)
+dend=set_labels(dend,labels=profs[["baaa4ab2"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.9)
+```
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["baaa4ab2"]]$HG)
+```
+### **c** branch.
+
+![][c]
+
+- **c** LODY=5. One from Indian Telugu in the United Kingdom(TelugiUK).
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["c"]]$HG)
+```
+
+- **c1** LODY=43.
+- **c1a** LODY=52.
+- **c1aa** LODY=25. One from Han Chinese South China(ChinaHanS) and one from Kinh in Ho Chi Minh City, Vietnam(Vietnam). Inspection of subbranches later on.
+
+- **c1ab** LODY=5. Inspection of subbranches later on.
+- **c1b** LODY=170. 5 from Han Chinese in Beijing, China(ChinaHanB), one from	Indian Telugu in the United Kingdom(TelugiUK) and one from Vietnam.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["c1b"]]$HG)
+```
+Branch of haplogroup N.
+
+- **c1b1** LODY=11. One ChinaHanB and one Vietnam.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["c1b1"]]$HG)
+```
+
+- **c1b2** LODY=106. 4 from Finland.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["c1b2"]]$HG)
+```
+
+- **c1b3** LODY=17. 16 Finland.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["c1b3"]]$HG)
+```
+
+Some Fins are "descendants" to asians?
+
+#### Branch **c1ab**
+
+![][c1ab]
+
+- **c1ab** LODY=5.
+- **c1aba** LODY=13.
+- **c1abaa** LODY=55. One Japanese in Tokyo, Japan(Tokyo), 2 ChinaHanS, one Vietnam and 3 ChinaHanB.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["c1abaa"]]$HG)
+```
+
+- **c1abaa1** LODY=90. One ChinaHanB and one ChinaHanS.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["c1abaa1"]]$HG)
+```
+
+- **c1abaa2** LODY=15. One ChinaHanS.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["c1abaa2"]]$HG)
+```
+
+- **c1abaa3** LODY=3. 3 Vietnam, 2 Chinese Dai in Xishuangbanna, China(ChinaDai) and 2 Bangladesh	Bengali in Bangladesh(Bengali).
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["c1abaa3"]]$HG)
+```
+
+- **c1abaa4** LODY=14. 8 ChinaDai, 1 ChinaHanB and 1 Tokyo.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["c1abaa4"]]$HG)
+```
+
+- **c1abaa5** LODY=30. 3 ChinaDai, 3 Vietnam and 1 ChinaHanS
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["c1abaa5"]]$HG)
+```
+
+- **c1abaa6** LODY=7. 4 Vietnam.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["c1abaa6"]]$HG)
+```
+
+- **c1abaa7** LODY=6. 8 ChinaDai, 5 Vietnam and 1 ChinaHanS.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["c1abaa7"]]$HG)
+```
+
+- **c1abab** LODY=141. 1 ChinaHanB.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["c1abab"]]$HG)
+```
+
+- **c1abab1** LODY=38. 3 Tokyo, 2 ChinaHanS and 1 ChinaHanB.
+
+YTypes of iHg
+```{r echo=FALSE}
+table(profs[["c1abab1"]]$HG)
+```
+
+- **c1abab2** LODY=29. 15 Tokyo.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["c1abab2"]]$HG)
+```
+
+- **c1abb** LODY=126. 1 ChinaHanB.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["c1abb"]]$HG)
+```
+
+- **c1abb1** LODY=45.  Leaf with dendogram based on 4 differing snps.
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["c1abb1"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",1)
+dend=set_labels(dend,labels=profs[["c1abb1"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.8)
+```
+
+#### Branch **c1aa**
+
+![][c1aa]
+
+- **c1aa** LODY=25, One ChinaHanS and one Vietnam.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["c1aa"]]$HG)
+```
+
+- **c1aa1** LODY=34.
+- **c1aa1b** LODY=58.
+- **c1aa1bb** LODY=23. 7 ChinaHanS, 2 ChinaHanB and 2 Vietnam.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["c1aa1bb"]]$HG)
+```
+
+- **c1aa1ba** LODY=37. 1 ChinaDai, 1 ChinaHanB and 1 Tokyo.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["c1aa1ba"]]$HG)
+```
+
+- **c1aa1ba1** LODY=2. 2 ChinaHanS.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["c1aa1ba1"]]$HG)
+```
+
+- **c1aa1ba2** LODY=33. 1 Vietnam.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["c1aa1ba2"]]$HG)
+```
+
+- **c1aa1ba3** LODY=2. Leaf dendogram based on 13 differing snps.
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["c1aa1ba3"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",1)
+dend=set_labels(dend,labels=profs[["c1aa1ba3"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.8)
+```
+
+- **c1aa1a** LODY=5. 
+- **c1aa1ab** LODY=35. 2 ChinaHanS and 1 ChinaHanB.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["c1aa1ab"]]$HG)
+```
+
+- **c1aa1ab1** LODY=38. 10 ChinaHanS, 6 Vietnam and 1 ChinaDai.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["c1aa1ab1"]]$HG)
+```
+
+- **c1aa1aa** LODY=33. 2 ChinaHanS and 1 Vietnam.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["c1aa1aa"]]$HG)
+```
+
+- **c1aa1aa1** LODY=17. 
+- **c1aa1aa1b** LODY=31. 1 Vietnam and 1 Tokyo.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["c1aa1aa1b"]]$HG)
+```
+
+- **c1aa1aa1b1** LODY=5. 1 ChinaHanB.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["c1aa1aa1b1"]]$HG)
+```
+
+- **c1aa1aa1b2** LODY=30. 1 ChinaDai.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["c1aa1aa1b2"]]$HG)
+```
+
+- **c1aa1aa1b3** LODY=4. 7 ChinaHanB, 4 ChinaHanS, 3 Vietnam and 2 Tokyo.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["c1aa1aa1b3"]]$HG)
+```
+
+- **c1aa1aa1a** LODY=31. 1 ChinaHanB.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["c1aa1aa1a"]]$HG)
+```
+
+- **c1aa1aa1a1** LODY=66.
+Non leaf dendogram based on 4 differing snps.
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["c1aa1aa1a1"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",1)
+dend=set_labels(dend,labels=profs[["c1aa1aa1a1"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.8)
+```
+
+- **c1aa1aa1a2** LODY=14. 9 ChinaDai, 2 Bengali, 1 ChinaHanB and 1 Vietnam.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["c1aa1aa1a2"]]$HG)
+```
+
+
+### **a** branch.
+
+This is primaryly african with a lot of yyhaps. As noted before, it is split into **aa** and **ab**. We start by looking at **aa**.
+
+#### **aa** branch.
+
+![][aa]
+
+- **aa** LODY=7.
+- **aac** LODY=177. Two from 	Gujarati Indians in Houston, Texas, United States(GujaratiUSA).
+
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aac"]]$HG)
+```
+
+
+- **aac1** LODY=54. One from 	Punjabi in Lahore, Pakistan(Pakistan).
+
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aac1"]]$HG)
+```
+
+
+- **aac2**:LODY=26. Two individuals with origin Pakistan and one from Puerto Rico(PuertoRico).
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aac2"]]$HG)
+```
+
+- **aac3**:LODY=26. One individual with origin Toscani in Italy(Toscani).
+
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aac3"]]$HG)
+```
+
+
+- **aac4**:LODY=7. One individual with origin Utah residents with Northern and Western European ancestry(EurUtah)
+
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aac4"]]$HG)
+```
+
+
+- **aac5** LODY=15.Leaf dendogram of mixed origin. Based on 14 differing snps.
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["aac5"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",.7)
+dend=set_labels(dend,labels=profs[["aac5"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.68)
+```
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aac5"]]$HG)
+```
+
+
+- **aab** LODY=25.
+- **aabb** LODY=126. 6 	Sri Lankan Tamil in the United Kingdom(TamilUK), 5 in	Indian Telugu in the United(TelugiUK) Kingdom and 1	Punjabi in Lahore, Pakistan(Pakistan).
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aabb"]]$HG)
+```
+
+- **aaba** LODY=61. 2 TelugiUK, 2 Bengali in Bangladesh(Bengali) and one Sri Lankan Tamil in the United Kingdom(TamilUK).
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaba"]]$HG)
+```
+
+- **aaba1** LODY=180. 3 Gujarati Indians in Houston, Texas, United States(GujaratiUSA) and 2 Bengali.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaba1"]]$HG)
+```
+
+- **aaba2** LODY=12. 1 TamilUK and 1 Bengali.
+
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaba2"]]$HG)
+```
+
+
+- **aaba3** LODY=3. 1 Pakistan and 1 Bengali.
+
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaba3"]]$HG)
+```
+
+
+- **aaba4** LODY=69. 3 GujaratiUSA, 3 TelugiUK and 1 Pakistan.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaba4"]]$HG)
+```
+
+- **aaba4a** LODY=5. Leaf dendogram based on 10 differing snps:
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["aaba4a"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",1)
+dend=set_labels(dend,labels=profs[["aaba4a"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.8)
+```
+
+
+- **aaba4b** LODY=4. Leaf dendogram based on 3 differing snps.
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["aaba4b"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",1)
+dend=set_labels(dend,labels=profs[["aaba4b"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.8)
+```
+
+
+
+- **aaa** LODY=13. 1 Vietnam.
+
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaa"]]$HG)
+```
+
+This is the only F in the database!? The rest of the branch **aaa** is C,D and E.
+
+- **aaa1** LODY=128.
+- **aaa1b** LODY=170. East asian Dendogram based on 
+
+This branch is haplogroup C and subclades thereof.
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["aaa1b"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",1)
+dend=set_labels(dend,labels=profs[["aaa1b"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.8)
+```
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaa1b"]]$HG)
+```
+
+
+- **aaa1b1** LODY=6. 4 Tokyo.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaa1b1"]]$HG)
+```
+
+- **aaa1b2** LODY=228. 2 Bengali and 1 Pakistan.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaa1b2"]]$HG)
+```
+
+- **aaa1b3** LODY=76. 1 GujaratiUSA.
+
+This branch is haplotype C5a.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaa1b3"]]$HG)
+```
+
+
+- **aaa1b4** LODY=46. 1 TamilUK.
+
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaa1b4"]]$HG)
+```
+
+
+- **aaa1b5** LODY=23. 1 TelugiUK.
+
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaa1b5"]]$HG)
+```
+
+
+- **aaa1b6** LODY=29. Leaf with 11 GujaratiUSA.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaa1b6"]]$HG)
+```
+
+- **aaa1a** LODY=4. 
+- **aaa1ab** LODY=212 with an african! leaf dendogram based on 23 differing snps.
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["aaa1ab"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",1)
+dend=set_labels(dend,labels=profs[["aaa1ab"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.75)
+```
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaa1ab"]]$HG)
+```
+
+
+#### **aaa1aa** branch
+
+![][aaa1aa]
+
+
+- **aaa1aa** LODY=25.  
+- **aaa1aab** LODY=326. 3 Tokyo. This is the branch of the 20 from Tokyo. All in haplogroup D2 or subclades thereof.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaa1aab"]]$HG)
+```
+- **aaa1aab1** LODY=49. 6 Tokyo. Further radiation events?
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaa1aab1"]]$HG)
+```
+
+- **aaa1aab2** LODY=10. Leaf with 11 from Tokyo.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaa1aab2"]]$HG)
+```
+
+- **aaa1aaa** LODY=99.  African: 2 Kenya and one from each of AfrCarib, AfrUSA and NigeriaY. This branch is haplogroup E.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaa1aaa"]]$HG)
+```
+
+- **aaa1aaa1** LODY=10. 
+- **aaa1aaa1b** LODY=301. Mostly african.  
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["aaa1aaa1b"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",1)
+dend=set_labels(dend,labels=profs[["aaa1aaa1b"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.8)
+```
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaa1aaa1b"]]$HG)
+```
+
+
+- **aaa1aaa1a** LODY=68.
+- **aaa1aaa1ab** LODY=163.
+- **aaa1aaa1aba** LODY=4. 3 Columbia, 2 Kenya and 2 PuertoRico.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaa1aaa1aba"]]$HG)
+```
+
+- **aaa1aaa1aba1** LODY=82. Leaf dendogram based on 7 differing snps.
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["aaa1aaa1aba1"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",1)
+dend=set_labels(dend,labels=profs[["aaa1aaa1aba1"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.68)
+```
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaa1aaa1aba1"]]$HG)
+```
+
+
+- **aaa1aaa1abb** LODY=38. 1 Gambia.
+
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaa1aaa1abb"]]$HG)
+```
+
+
+- **aaa1aaa1abb1** LODY=69. Leaf dendogram by 11 differing snps.
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["aaa1aaa1abb1"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",1)
+dend=set_labels(dend,labels=profs[["aaa1aaa1abb1"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.68)
+```
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaa1aaa1abb1"]]$HG)
+```
+
+- **aaa1aaa1aaa** LODY=42. 1 Gambian in Western Division – Mandinka(Gambia)
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaa1aaa1aaa"]]$HG)
+```
+
+- **aaa1aaa1aaa1** LODY=5. One Gambia.
+- **aaa1aaa1aaa1b** LODY=3. 5 Gambia, 2 African Ancestry in Southwestern US(AfrUSA) and 1 	Mende in Sierra Leone(SierraLeo).
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["aaa1aaa1aaa1b"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",1)
+dend=set_labels(dend,labels=profs[["aaa1aaa1aaa1b"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.68)
+```
+
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaa1aaa1aaa1b"]]$HG)
+```
+
+- **aaa1aaa1aaa1b1** LODY=20. 1 Gambia.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaa1aaa1aaa1b1"]]$HG)
+```
+
+- **aaa1aaa1aaa1b2** LODY=6. 5 Yoruba in Ibadan, Nigeria(NigeriaY) , 4	African Caribbean in Barbados(AfrCarib) and 2 Gambia. Branch to be continued.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaa1aaa1aaa1b2"]]$HG)
+```
+
+- **aaa1aaa1aaa1a** Branch to be continued.
+
+#### Branch **aaa1aaa1aaa1a**
+
+![][aaa1aaa1aaa1a]
+
+- **aaa1aaa1aaa1a** LODY=7. 2 AfrCarib and one from each of AfrUSA, Gambia, Kenya, PuertoRico and SierraLeo.
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["aaa1aaa1aaa1a"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",1)
+dend=set_labels(dend,labels=profs[["aaa1aaa1aaa1a"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.68)
+```
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaa1aaa1aaa1a"]]$HG)
+```
+
+- **aaa1aaa1aaa1ab** LODY=23. 5 Gambia and 4 SierraLeo.
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["aaa1aaa1aaa1ab"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",1)
+dend=set_labels(dend,labels=profs[["aaa1aaa1aaa1ab"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.68)
+```
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaa1aaa1aaa1ab"]]$HG)
+```
+
+- **aaa1aaa1aaa1ab1** LODY=2. Leaf dendogram based on 4 differing snps.
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["aaa1aaa1aaa1ab1"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",1)
+dend=set_labels(dend,labels=profs[["aaa1aaa1aaa1ab1"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.68)
+```
+
+- **aaa1aaa1aaa1aa** LODY=5.  
+- **aaa1aaa1aaa1aab** LODY=25.
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["aaa1aaa1aaa1aab"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",.9)
+dend=set_labels(dend,labels=profs[["aaa1aaa1aaa1aab"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.68)
+```
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaa1aaa1aaa1aab"]]$HG)
+```
+
+
+- **aaa1aaa1aaa1aaa** LODY=12. 1 SierraLeo. 
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaa1aaa1aaa"]]$HG)
+```
+
+- **aaa1aaa1aaa1aaa1** LODY=11. 2 NigeriaE, one of each of AfrCarib, Kenya and NigeriaY.
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["aaa1aaa1aaa1aaa1"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",.9)
+dend=set_labels(dend,labels=profs[["aaa1aaa1aaa1aaa1"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.68)
+```
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaa1aaa1aaa1aaa1"]]$HG)
+```
+
+- **aaa1aaa1aaa1aaa2** LODY=8. 1 AfrCarib and 1 SierraLeo. 
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaa1aaa1aaa1aaa2"]]$HG)
+```
+
+- **aaa1aaa1aaa1aaa3** LODY=6. Non leaf with dendogram based on 34 differing snps.
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["aaa1aaa1aaa1aaa3"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",.8)
+dend=set_labels(dend,labels=profs[["aaa1aaa1aaa1aaa3"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.68)
+```
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaa1aaa1aaa1aaa3"]]$HG)
+```
+
+- **aaa1aaa1aaa1aa3b** LODY=3. Dendogram based on 6 varying snps.
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["aaa1aaa1aaa1aaa3b"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",.8)
+dend=set_labels(dend,labels=profs[["aaa1aaa1aaa1aaa3b"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.68)
+```
+
+
+- **aaa1aaa1aaa1aaa3a** LODY=2. Dendogram based on 4 varying snps.
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["aaa1aaa1aaa1aaa3a"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",.8)
+dend=set_labels(dend,labels=profs[["aaa1aaa1aaa1aaa3a"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.68)
+```
+
+
+- **aaa1aaa1aaa1aaa3a1** LODY=7. 16 Kenya. 
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["aaa1aaa1aaa1aaa3a1"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",.9)
+dend=set_labels(dend,labels=profs[["aaa1aaa1aaa1aaa3a1"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.68)
+```
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["aaa1aaa1aaa1aaa3a1"]]$HG)
+```
+
+#### **ab** branch
+
+
+![][ab]
+
+
+
+- **ab** LODY=43.  
+- **aba** LODY=90.
+
+This is haplogroup J.
+
+- **abaa** LODY=40.
+- **abaaa** LODY=57. 1 Pakistan.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["abaaa"]]$HG)
+```
+
+- **abaaa1** LODY=22. 1 Pakistan.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["abaaa1"]]$HG)
+```
+
+- **abaaa2** LODY=23. 2 TamilUK and 1 Pakistan.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["abaaa2"]]$HG)
+```
+
+Branch is haplogroup J2a1 or subclades thereof.
+
+- **abaaa3** LODY=3.
+- **abaaa3a** LODY=4.
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["abaaa3a"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",1)
+dend=set_labels(dend,labels=profs[["abaaa3a"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.68)
+```
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["abaaa3a"]]$HG)
+```
+
+- **abaaa3b** LODY=19. 3 Pakistan.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["abaaa3b"]]$HG)
+```
+
+- **abaaa3b1** LODY=5.
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["abaaa3b1"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",1)
+dend=set_labels(dend,labels=profs[["abaaa3b1"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.68)
+```
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["abaaa3b1"]]$HG)
+```
+
+
+- **abaab** LODY=104. 1 Iberian.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["abaab"]]$HG)
+```
+
+- **abaab1** LODY=8. 1 Toscani.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["abaab1"]]$HG)
+```
+
+- **abaab2** LODY=29. 3 Toccani and one of each of Iberian, British and EurUtah.
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["abaab2"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",.9)
+dend=set_labels(dend,labels=profs[["abaab2"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.68)
+```
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["abaab2"]]$HG)
+```
+
+- **abaab3** LODY=11. 1 TamilUK.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["abaab3"]]$HG)
+```
+
+- **abaab4** LODY=11. A diverse leaf dendogram:
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["abaab4"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",1)
+dend=set_labels(dend,labels=profs[["abaab4"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("top", legend = group_levels, fill = colors, title = "origin", cex=.68)
+```
+
+
+- **abab** LODY=115. 2 Columbia.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["abab"]]$HG)
+```
+
+- **abab1** LODY=11. 1 Pakistan.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["abab1"]]$HG)
+```
+
+- **abab2** LODY=5. 1 Columbia.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["abab2"]]$HG)
+```
+
+- **abab3** LODY=62.
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["abab3"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",1)
+dend=set_labels(dend,labels=profs[["abab3"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.68)
+```
+
+- **abb** LODY=125.
+
+This is haplogroup I or subclades thereof.
+
+- **abba** LODY=196. 2 British and 1 EurUtah.
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["abba"]]$HG)
+```
+
+- **abba1** LODY=3. Non leaf dendogram:
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["abba1"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",1)
+dend=set_labels(dend,labels=profs[["abba1"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.68)
+```
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["abba1"]]$HG)
+```
+
+- **abba2** LODY=5. Leaf dendogram
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["abba2"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",1)
+dend=set_labels(dend,labels=profs[["abba2"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.68)
+```
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["abba2"]]$HG)
+```
+
+- **abbb** LODY=43. Leaf dendogram:
+
+
+```{r echo=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["abbb"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",.8)
+dend=set_labels(dend,labels=profs[["abbb"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin", cex=.75,ylab="mutations")
+legend("topright", legend = group_levels, fill = colors, title = "origin", cex=.68)
+```
+
+Types of iHg
+```{r echo=FALSE}
+table(profs[["abbb"]]$HG)
+```
+
+
+
+
+
+
+```{r echo=FALSE, eval=FALSE}
+load("blad0.RData")
+load("su1.RData")
+# Load necessary libraries
+library(dendextend)
+library(RColorBrewer)
+names(blad0)=su1[as.numeric(names(blad0))]
+h=blad0[["c1aa1ab1"]]$dat
+oneP=function(h){
+L=dim(h)[2]-1
+v=names(h)[1:L]=sapply(names(h)[1:L],oneCam)
+h=cbind(h,numMut=apply(h[,-(L+1)],1,sum))
+h$numInd=1
+g=aggregate(h,numInd~.,sum)
+w=g[order(g$numInd,g$numMut,decreasing=c(TRUE,FALSE)),]
+ii=apply(w[,1:L,],2,sum)
+w[,1:L]=w[,order(ii,decreasing=TRUE)]
+M=max(g$numMut)
+L1=dim(g)[2]
+N=dim(g)[1]
+for(i in 1:M) w=cbind(w,rep(NA,N))
+names(w)[(L1+1):(L1+M)]=paste("mut",1:M,sep="")
+for(i in 1:N){
+  z=w[i,1:L]
+  if(sum(z)==0) next
+  ns=v[z>0]
+  lns=length(ns)
+  w[i,(L1+1):(L1+lns)]=ns
+}
+w[,-(1:L)]
+}
+  
+
+#oneP(h)
+```
+
+
+```{r echo=FALSE, eval=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["c1aa1ab1"]]
+L=dim(h)
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored origin")
+legend("topright", legend = group_levels, fill = colors, title = "origin")
+gg=cutree(cl,h=0)
+c1=h[gg==1,]
+c2=h[gg==2,]
+```
+
+
+
+```{r echo=FALSE, eval=FALSE}
+load("HapTable.RData")
+load("su1.RData")
+names(HapTable)=su1
+h=HapTable[["aaba4a"]]
+L=dim(h)
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=set_labels(dend,labels=profs[["bab2a"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored origin")
+legend("topright", legend = group_levels, fill = colors, title = "origin")
+
+```
+
+
+```{r echo=FALSE, eval=FALSE}
+load("HapTable.RData")
+names(HapTable)=su1
+h=HapTable[["aaa1aaa1aaa1aaa3b"]]
+h=h[order(h$ori),]
+L=dim(h)
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="complete")
+dend <- as.dendrogram(cl)
+dend=set_labels(dend,labels=profs[["bab2a"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Dendrogram Colored by origin")
+legend("topright", legend = group_levels, fill = colors, title = "origin")
+
+```
+
+
+
+
+
+
+
+
+```{r echo=FALSE, eval=FALSE}
+h=HapTable[["baaa4a"]]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+mut=apply(d1,1,sum)
+c1=d1[mut<6,]
+c11=c1
+c11$n=1
+c11=aggregate(n~.,data=c11,sum)
+tt=apply(d1,2,sum)
+yy1=d1[,tt==10]
+yy2=yy1[apply(yy1,1,sum)>0,]
+zz=d1[apply(yy1,1,sum)==0,tt!=10]
+yy3=h[rownames(yy2),]
+yy4=yy3[,c(apply(yy3[,-c(61,62)],2,sum)>0,T,T)]
+nyyyhap=colnames(yy1)[-c(3,6,8)]
+load("m3.RData")
+d4=d5=m3[,nyyyhap]
+d5$n=1
+d6=aggregate(n~.,data=d5,sum)
+d7=d6[order(d6$n),]
+pers=rownames(d4)[d4[,1]==d7[1,1]]
+dr=d1[-match(pers,rownames(d1)),]
+dr1=dr[,apply(dr,2,sum)>0]
+drn=dr1
+drn$n=1
+drn1=aggregate(n~.,drn,sum)
+dr2=dr1[,apply(dr1,2,sum)>40]
+pers2=rownames(dr2)
+```
+
+```{r}
+
+```
+
+```{r eval=FALSE, echo=FALSE}
+oneC=function(x,y){
+  a=x$snp
+  b=y$snp
+  h=match(a,b,0)
+  if(sum(h)==0) return(TRUE)
+  if(sum(h>0)==min(length(a),length(b))) return(TRUE)
+  FALSE
+}
+m=matrix(1,174,174)
+#for(i in 1:173) for(j in (i+1):174) m[i,j] = oneC(profs[[i]],profs[[j]])+0
+load("prof171.RData")
+intree=extract(profs,x$snp)
+nn=names(m3)
+iii=match(intree,nn)
+outtree=nn[-iii]
+load("hapTable.RData")
+load("su1.RData")
+varsnp=extract(HapTable,names(x))
+varsnp=varsnp[!varsnp%in%c("ori","super")]
+totintree=unique(c(intree,varsnp))
+fixed_in_hg=nn[-c(match(totintree,nn),8072,8073)]
+notn=extract(HapTable,is.null(x))
+notn[notn==F]=extract(HapTable,rownames(x)[1])
+fix_prof=extract(notn,if(x==TRUE) x else m3[x,fixed_in_hg],uL=FALSE)
+ex=extract(fix_prof,if(x[1]==TRUE) x else x[30])
+names(profs)=su1
+abpr=profs[["ab"]]$pr
+
+tt=table(ex)
+na=names(tt)
+snpval=na[tt==min(tt)]
+subb=su1[ex==snpval]
+ant=extract(fixed_in_hg,min(table(m3[,x])))
+fix21=fixed_in_hg[ant==21]
+#save(fix_prof,file="fix_prof.RData")
+```
+### Final remarks
+
+There is still some things to wonder about. E.g.
+
+- The snp **rs2033003_58528** is  constantly **A** in branches **a** and **d** and constantly **C** in branches **b** and **c**. Actually joining **a** and **d** and joining **b** and **c**. Which  seems to be a natural structure in the sense that binary splits is to be expected in my current understanding of evolution. **Adam** has the only split, which is not binary. This snp should be incorporated as a split with LODY=1. And it points to **rs2033003_58528** as a founding snp. In haplogrouping it seems to play no current role.
+- The snp **rs72617693_2941** is  constantly **G** in branches **b** and **aaa1aaa1aa** and constantly **C** in the rest of the tree. This is and should be - in my understanding - a rare event with mutation on the same locus in different branches.
+- The snp **rs73614834_12233** is  constantly **T** in branch **aaa1aaa1aa** and constantly **C** in the rest of the tree. Except for haplogroup **c1aa1ba2** which is **T**? The haplogroup has only one profile and differs from descendants which have 16 **C** profiles. Looks like a wrong call. Can we use the tree to correct calls?
+- The snp **rs73626998_59414** is  constantly **G** in branch **baaa2** and constantly **T** in the rest of the tree. Except for haplogroup **c1aa1aa1b1**, which is **G**? The haplogroup has only one profile and differs from descendants with 17 profiles. Looks like a wrong call.
+- The snp **rs56663788_27166** is  constantly **G** in branch **ba** and **A** in the rest of the tree. Except for haplogroup **aaa**. The haplogroup has only 1 profile and differs from 381 descending profiles. Looks like a wrong call. If altered, this would add the snp to the yyhap of **ba**.
+```{r}
+```
+
+
+```{r}
+```
+
+And there are more than 20 examples of similar type.
+
+Another type:
+
+- The snp **rs9786869_28306** is  constantly **C** in branch **b** and **T** in the rest of the tree. Except for haplogroup **aa1b**. The haplogroup has 9 profiles and 8 are type **C**.  A single **T** looks like a wrong call. If altered, this would add the snp to the yyhap of **b**.
+- The snp **rs3853054_12511** is  constantly **G** in branch **a** and **T** in the rest of the tree. Except for haplogroup **aaa1aaa1abb1**. The haplogroup has 16 profiles and 15 are type **G**.  A single **T** looks like a wrong call. If altered, this would add the snp to the yyhap of **a**.
+- The snp **rs17221964_24819** is  constantly **T** in the whole tree. Except for the leaf haplogroup **abbb**. The haplogroup has 16 profiles and 7 are of type **T**, while the remaining 9 are of type **G**. Looks like a genuine mutation isolated to a leaf.
+
+Other questions:
+
+- **d** has individuals closest to Adam of type T1a or subclades thereof. **d1** in distance 2 to Adam is L1c and the two descendants is L1a. Looks like the youngest branch, where T is before L?
+- **c** seems elder than **d**, but is represented by  one individual of type K2a*. Subclades in **c1b** shifts to haplogroup N?
+- And much more as I probably dont understand the nomenclature in iHg.
+
+
+```{r eval=FALSE, echo=FALSE}
+d=HapTable[["aaa1aa1b"]]
+
+
+L=dim(d)[2]
+d1=d[,-c(L-1,L)]
+zz=apply(d1,2,sum)
+d2=d3=d1[,zz==1]
+d3$n=1
+d4=aggregate(n~.,d3,sum)
+d5=d[,c(zz==1,T,T)]#ny yyhap 
+L1=dim(d5)[2]
+qq=apply(d5[,-c(L1-1,L1)],1,sum)
+e1=d[qq==0,c(zz,0,0)!=7]
+f1=d[qq==0,c(zz,0,0)!=7]
+L2=dim(e1)[2]
+e2=e1[,-c(L2-1,L2)]
+zz=apply(e2,2,sum)#e1 leaf-nix
+L3=dim(f1)[2]
+f2=f1[,-c(L3-1,L3)]
+zz=apply(f2,2,sum)#e1 leaf
+f3=f1[,c(zz==6,T,T)]#f1 leaf with outlier-nix
+f4=f2[,zz==6]
+```
+
+```{r eval=FALSE, echo=FALSE}
+oneI=function(x,m3,profs){
+ q=profs[[x]]$profs
+ w=apply(m3[q,],2,function(x) min(table(x))==0)
+}
+  
+qb=profs[["b"]]$profs
+qc=profs[["c"]]$profs
+qd=profs[["d"]]$profs
+
+```
+
+[completetree]:completetree.png "completetree"
+[adam]: adam.png "Adam"
+[aa]: aa.png "aa"
+[ab]: ab.png "ab"
+[b]: b.png "b"
+[c]: c.png "c"
+[c1ab]: c1ab.png "c1ab"
+[c1aa]: c1aa.png "c1aa"
+[aaa1aaa]: aa1aaa.png "aa1aaa"
+[aaa1aaa1aaa1a]: aaa1aaa1aaa1a.png "aaa1aaa1aaa1a"
+[aaa1aa]: aaa1aa.png "aaa1aa"

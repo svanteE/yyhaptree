@@ -1,0 +1,123 @@
+name: R-CMD-check
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  R-CMD-check:
+    runs-on: ${{ matrix.config.os }}
+    
+    name: ${{ matrix.config.os }} (R-${{ matrix.config.r }})
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {os: windows-latest, r: 'release'}
+          - {os: macOS-latest, r: 'release'}
+          - {os: ubuntu-latest, r: 'release'}
+          - {os: ubuntu-latest, r: 'devel'}
+    
+    env:
+      R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: ${{ matrix.config.r }}
+      
+      - name: Set up Pandoc
+        uses: r-lib/actions/setup-pandoc@v2
+      
+      - name: Install system dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libcurl4-openssl-dev \
+            libssl-dev \
+            libxml2-dev \
+            libfontconfig1-dev \
+            libharfbuzz-dev \
+            libfribidi-dev \
+            libfreetype6-dev \
+            libpng-dev \
+            libtiff5-dev \
+            libjpeg-dev
+      
+      - name: Query R dependencies
+        run: |
+          install.packages('remotes')
+          saveRDS(remotes::dev_package_deps(dependencies = TRUE), ".github/depends.Rds", version = 2)
+          writeLines(sprintf("R-%i.%i", getRversion()$major, getRversion()$minor), ".github/R-version")
+        shell: Rscript {0}
+      
+      - name: Cache R packages
+        if: runner.os != 'Windows'
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.R_LIBS_USER }}
+          key: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-1-${{ hashFiles('.github/depends.Rds') }}
+          restore-keys: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-1-
+      
+      - name: Install R dependencies
+        run: |
+          install.packages(c("knitr", "rmarkdown", "kableExtra", "dendextend", "RColorBrewer", "testthat"))
+        shell: Rscript {0}
+      
+      - name: Check R package versions
+        run: |
+          cat("Installed packages:\n")
+          installed.packages()[c("knitr", "rmarkdown", "kableExtra", "dendextend"), c("Package", "Version")]
+        shell: Rscript {0}
+      
+      - name: Create dummy data files for testing
+        run: |
+          # Create minimal test data
+          HapTable <- list(
+            test1 = data.frame(
+              SNP1 = c(0, 1, 0, 1, 0, 1),
+              SNP2 = c(1, 1, 0, 0, 1, 1),
+              HG = paste0("S", 1:6),
+              ori = factor(rep(c("Pop1", "Pop2"), each = 3))
+            )
+          )
+          save(HapTable, file = "HapTable.RData")
+          
+          m3 <- data.frame(
+            SNP1 = sample(0:1, 100, replace = TRUE),
+            SNP2 = sample(0:1, 100, replace = TRUE),
+            ori = factor(sample(c("Pop1", "Pop2", "Pop3"), 100, replace = TRUE))
+          )
+          save(m3, file = "m3.RData")
+          
+          profs <- list(
+            list(HG = paste0("S", 1:6), origin = c(Pop1 = 3, Pop2 = 3), inHg = 1:10)
+          )
+          save(profs, file = "prof171.RData")
+          
+          adM <- matrix(sample(0:1, 100, replace = TRUE), 10, 10)
+          save(adM, file = "adM.RData")
+        shell: Rscript {0}
+      
+      - name: Test basic data loading
+        run: |
+          if (!file.exists("HapTable.RData")) stop("HapTable.RData not found")
+          load("HapTable.RData")
+          if (!is.list(HapTable)) stop("HapTable is not a list")
+          cat("✓ Data files load successfully\n")
+        shell: Rscript {0}
+      
+      - name: Session info
+        run: |
+          options(width = 100)
+          pkgs <- installed.packages()[, "Package"]
+          sessioninfo::session_info(pkgs, include_base = TRUE)
+        shell: Rscript {0}

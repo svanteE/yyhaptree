@@ -1,0 +1,298 @@
+---
+title: "A Novel Y-Chromosome Phylogeny Based on Yin-Yang Haplotypes"
+author: "P.S. Eriksen"
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    number_sections: true
+    latex_engine: xelatex
+  html_document:
+    df_print: paged
+  word_document: default
+bibliography: references.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, fig.height = 4)
+library(webshot2)
+library(dendextend)
+library(RColorBrewer)
+options(width=100)
+
+# Load data
+load("m3.RData")
+load("adM.RData")
+load("prof171.RData")
+load("HapTable.RData")
+load("su1.RData")
+source("extract.R")
+
+# Process data
+short=c("AfrCarib","AfrUSA","Bengali","ChinaDai","EurUtah","ChinaHanB","ChinaHanS",
+        "Columbia","NigeriaE","Finland","British","GujaratiUSA","Gambia","Iberian",
+        "TelugiUK","Tokyo","Vietnam","Kenya","SierraLeo","MexicoUSA","Peru","Pakistan",
+        "PuertoRico","TamilUK","Toscani","NigeriaY")
+m3$ori=factor(m3$ori,labels=short)
+L=length(profs)+1
+prs=extract(profs,x$pr,uL=F)
+num=apply(adM,1,function(x) (1:L)[x>0])
+for(i in 1:(L-1)){
+  h=unlist(prs[num[[i]]])
+  if(is.null(h)) {
+    profs[[i]]$inHg=prs[[i]]
+    next
+  }
+  profs[[i]]$inHg=prs[[i]]=prs[[i]][-match(h,prs[[i]])]
+  names(profs[[i]]$origin)=short
+}
+names(HapTable)=su1
+names(profs)=su1
+```
+
+# abstract
+
+We present a novel phylogenetic reconstruction of the human Y-chromosome using yin-yang haplotypes (yyhaps)—sets of SNPs exhibiting only two haplotypes across all samples. Analyzing 8,071 prevalent SNPs from 1,223 male individuals in the 1000 Genomes Project, we identified 171 yyhaps covering 7,294 SNPs (90.4%). Remarkably, these yyhaps form a hierarchical tree structure that partitions the entire sample into non-overlapping haplogroups. The tree exhibits four primary branches from the root, predominantly corresponding to known Y-chromosome haplogroups, with branch **a** showing high African diversity, branches **b** and **c** representing Eurasian lineages, and branch **d** showing recent divergence. We observed several extraordinary yyhaps, including one with 326 locked SNPs exclusively in Japanese individuals, suggesting potential environmental or demographic factors. The yyhap tree provides a complementary approach to traditional Y-chromosome phylogenetics and reveals potential genotyping errors detectable through phylogenetic inconsistencies.
+
+**Keywords:** Y-chromosome, yin-yang haplotypes, phylogenetics, 1000 Genomes Project, haplogroups
+
+# Introduction
+
+The human Y-chromosome has been extensively used to trace paternal lineages and reconstruct human migration patterns [@karafet2008new; @poznik2016punctuated]. Traditional Y-chromosome phylogenies rely on accumulating mutations along male lineages, with haplogroup nomenclature based on hierarchical SNP markers [@van2014toward]. However, identifying informative markers and constructing robust trees remains challenging due to ascertainment bias and recurrent mutations [@scozzari2014update].
+
+We introduce a novel approach based on **yin-yang haplotypes** (yyhaps)—sets of SNPs where only two distinct haplotypes are observed across all individuals in a population. This concept extends earlier work on linkage disequilibrium and haplotype blocks [@gabriel2002structure] by focusing on SNP sets exhibiting perfect two-state partitioning. For the Y-chromosome, where recombination is absent or extremely rare outside the pseudoautosomal regions, yyhaps should theoretically form nested hierarchies reflecting the true phylogeny.
+
+Using data from the 1000 Genomes Project Phase 3 [@1000genomes2015global], we analyzed 1,223 males from 26 populations and identified 171 yyhaps covering 90.4% of 8,071 prevalent SNPs. These yyhaps naturally organize into a tree structure, providing an independent validation and refinement of existing Y-chromosome phylogenies.
+
+# Materials and Methods
+
+## Data Source and SNP Selection
+
+We used Phase 3 data from the 1000 Genomes Project, focusing on Y-chromosome variants from 1,223 unrelated males representing 26 global populations [@1000genomes2015global]. We selected the 8,071 most prevalent SNPs based on minor allele frequency.
+
+## Yin-Yang Haplotype Definition
+
+A yin-yang haplotype (yyhap) is defined as a set of SNPs $S = \{s_1, s_2, ..., s_n\}$ where across all individuals, only two distinct haplotypes are observed. For example, if $S$ contains 5 SNPs, we might observe only haplotypes AGCCC and CTTTA across all 1,223 individuals, with no other combinations occurring.
+
+The **length of a yyhap** (LODY) is the number of SNPs it contains. We identified yyhaps systematically by testing all possible SNP combinations that satisfied the two-haplotype constraint.
+
+## Tree Construction
+
+For each individual, we determined which yyhaps they carried (i.e., possessed the rare haplotype). We organized yyhaps into a hierarchical tree where:
+
+1. Each node represents a yyhap
+2. Individuals are assigned to haplogroups based on the deepest node they reach
+3. Parent-child relationships reflect nested yyhap patterns
+4. The root ("Adam") represents the ancestral state
+
+## Clustering and Visualization
+
+For large and terminal haplogroups (leaves), we performed hierarchical clustering using Manhattan distance (number of differing SNPs) with single linkage to visualize within haplogroup diversity. Dendrograms were colored by population of origin and labeled by ISOGG nomenclature.
+
+# Results
+
+## Overview of Yin-Yang Haplotypes
+
+We identified **171 yyhaps** covering **7,294 of 8,071 SNPs** (90.4%). The LODY distribution shows substantial variation:
+
+```{r lody-table}
+t=table(extract(profs,length(x$snp)))
+dimnames(t)[[1]]=paste("LODY=",dimnames(t)[[1]],sep="")
+t
+#knitr::kable(t, col.names = c("Count"), caption = "Distribution of yyhap lengths (LODY)")
+```
+
+The longest yyhap has LODY=326, found exclusively in 20 Japanese individuals from Tokyo. This remarkable linkage across 326 SNPs spanning ~24 Mb (positions 2.86–26.60 Mb in GRCh38) suggests either strong selective pressure or recent founder effects, possibly related to historical bottlenecks.
+
+## Tree Structure and Major Branches
+
+The complete yyhap tree partitions all 1,223 individuals into hierarchical haplogroups. The root node has four immediate descendants corresponding to four distinct yyhaps (Figure 1):
+
+![Complete yyhap phylogenetic tree showing all 171 haplogroups](completetree.png){width=100%}
+
+**Figure 1.** Complete yyhap phylogenetic tree showing all 171 haplogroups. Numbers at nodes indicate the number of individuals in each haplogroup. Four major branches (a, b, c, d) emerge from the root.
+
+The four primary branches are:
+
+- **Branch a** (LODY=13): 584 individuals, predominantly African, highly polymorphic, no individuals in the haplogroup
+- **Branch b** (LODY=104): 371 individuals, primarily Eurasian, no individuals in the haplogroup
+- **Branch c** (LODY=5): 233 individuals, primarily East Asian, one individual in the haplogroup
+- **Branch d** (LODY=22): 35 individuals, 8 individuals in the haplogroupery close to the root, South European and South Asian
+
+A close-up view of the root structure is shown in Figure 2:
+
+![Root structure showing four major branches](adam.png){width=70%}
+
+**Figure 2.** Root node structure showing the four primary yyhap branches (a, b, c, d) and their immediate descendants.
+
+### Branch d: Closest to Root
+
+Branch **d** contains 8 individuals differing from the ancestral state by only one yyhap (LODY=22). These individuals are identical across all 8,071 SNPs except for 5 positions:
+
+```{r branch-d-dendro, fig.cap="Dendrogram of haplogroup d showing minimal divergence", fig.width=6, fig.height=3}
+h=HapTable[["d"]]
+h=h[order(h$ori),]
+L=dim(h)[2]
+d1=h[,-c(L-1,L)]
+di=dist(d1,method = "man")
+cl=hclust(di,method="single")
+dend <- as.dendrogram(cl)
+dend=dend%>%set("labels_cex",.8)
+dend=set_labels(dend,labels=profs[["d"]]$HG)
+grouping_factor <- factor(as.character(h$ori))
+group_levels <- levels(grouping_factor)
+colors <- brewer.pal(length(group_levels), "Set1")
+label_colors <- colors[as.numeric(grouping_factor)]
+labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+plot(dend, main = "Branch d", cex=.7, ylab="Mutations")
+legend("topright", legend = group_levels, fill = colors, title = "Origin", cex=.7)
+```
+
+**Figure 3.** Dendrogram of haplogroup d.
+
+Five individuals are identical across all SNPs, with three others differing by single mutations. The geographic distribution (Italy, Spain, Latin America) suggests Mediterranean origins with migration to the Americas, consistent with historical colonization patterns [@adams2008genetic].
+
+Descendants of **d** include South Asian lineages (d1–d4), suggesting ancient gene flow between Europe and South Asia [@metspalu2011shared]. ISOGG is subclades of L1.
+
+### Branch b: Eurasian Diversity
+
+Branch **b** (LODY=104) encompasses 371 individuals primarily from Eurasia. Figure 5 shows the detailed structure of this branch:
+
+![Detailed structure of branch b showing Eurasian lineages](b.png){width=85%}
+
+**Figure 4.** Branch b showing Eurasian haplogroup diversity.
+
+Branch **b** subdivides into:
+
+- **bb**: Includes South Asian and Native American lineages (haplogroup Q)
+- **ba**: European and South Asian lineages (haplogroups R1a and R1b)
+
+Notably, subbranch **baab** corresponds to haplogroup R1a1a1, common in Eastern Europe, Central Asia, and South Asia [@underhill2015phylogenetic]. The geographic distribution reflects well-documented Indo-European expansion [@haak2015massive].
+
+### Branch c: East Asian Lineages
+
+Branch **c** shows strong East Asian representation, with sublineages corresponding to haplogroups N and O [@karafet2008new]. Figure 5 shows the detailed structure of this branch:
+
+![Top of branch c showing East Asian lineages](c.png){width=85%}
+
+**Figure 5.** Top of branch c showing East Asian haplogroup diversity. Only one leaf is displayed.
+
+A particularly striking finding is the Finnish presence in subbranch **c1b** (haplogroup N), with 20 Finnish individuals(c1b2 and c1b3) clustering with East Asian lineages(c1b and c1b1), consistent with known Uralic migrations and the genetic contribution of Asian populations to Finnish ancestry [@lahti2010genetic].
+
+### Branch a: African Diversity
+
+Branch **a** is the most polymorphic, containing numerous deep lineages predominantly of African origin. Figure 6 shows the top of this branch:
+
+![Detailed structure of branch a showing African diversity](aa.png){width=90%}
+
+**Figure 6.** Top of branch a showing extensive African haplogroup diversity.
+
+This branch includes:
+
+- Ancient haplogroup F (haplogroup **aaa**)
+- Haplogroups C, D, and E in various sublineages
+- The deepest divergences and highest SNP diversity
+
+One extreme example is haplogroup **aaa1aaa1aaa1aaa3a1** with 16 Kenyan individuals defined by 20 nested yyhaps, representing one of the most derived lineages in our tree. Remark that this haplogroup is a node in the branch **aaa1aa**, which is not displayed.
+
+## Extreme Yin-Yang Haplotypes
+
+### The Tokyo Radiation Signature
+
+The longest yyhap (LODY=326) defines haplogroup **aaa1aab** with 20 Tokyo individuals. The 326 SNPs span positions 2.86–26.60 Mb, locked into two haplotypes with all 20 individuals sharing the rare variant. This could reflect:
+
+1. **Recent bottleneck**: Founder effect in Japanese population
+2. **Selection**: Adaptive advantage of linked variants
+3. **Environmental mutagen exposure**: Radiation or chemical exposure affecting germline
+
+Given the concentration in Tokyo, historical radiation exposure (Hiroshima/Nagasaki or environmental sources) warrants investigation, though demographic explanations are more parsimonious [@horai1996recent].
+
+### Global Distribution Patterns
+
+Population-specific yyhaps reveal:
+
+- Strong African retention of ancestral diversity
+- Clear Asian-European distinctions
+- Recent admixture in Americas consistent with colonization
+- South Asian populations bridging Western and Eastern Eurasian lineages
+
+# Discussion
+
+## Yyhap Trees as Phylogenetic Tools
+
+Our yyhap-based tree successfully reconstructs known Y-chromosome phylogeny without prior knowledge of haplogroup structure. The concordance with established haplogroups [@van2014toward] validates the approach while revealing finer-scale structure.
+
+### Advantages
+
+1. **Data-driven**: No prior haplogroup knowledge required
+2. **Error detection**: Phylogenetic inconsistencies identify genotyping errors
+3. **Comprehensive**: Utilizes 90% of prevalent SNPs, not just selected markers
+
+### Limitations
+
+1. **Computational intensity**: Identifying all yyhaps is combinatorially expensive
+2. **Sample size dependency**: Rare haplotypes may not satisfy two-state constraint in smaller samples
+3. **Recombination**: Method assumes no recombination (valid for Y-chromosome)
+
+## Genotyping Error Detection
+
+We identified potential genotyping errors through phylogenetic inconsistencies. For example:
+
+- SNP **rs73614834_12233** shows constant T in branch **aaa1aaa1aa** but C in descendant haplogroup **c1aa1ba2** (single individual), likely a miscall
+- SNP **rs56663788_27166** shows constant G in branch **ba** but A in ancestral haplogroup **aaa** (single individual), suggesting error
+
+These represent systematic quality control opportunities for large-scale sequencing projects [@o2016reference].
+
+## Implications for Human Evolution
+
+The four-way split at the root differs from typical binary branching, suggesting rapid diversification or incomplete lineage sorting. SNP **rs2033003_58528**, constant within branches but differing between (a+d) vs (b+c), may represent a founding mutation predating the four-way split.
+
+The geographic distribution patterns support:
+
+- **African origin**: Branch **a** shows greatest diversity and depth
+- **Out-of-Africa**: Branches **b** and **c** represent Eurasian dispersal
+- **Back-to-Africa**: Some African lineages cluster with non-African branches, indicating gene flow [@henn2012hunter]
+
+## Future Directions
+
+1. **Temporal calibration**: Integrate mutation rates to estimate divergence times
+2. **Ancient DNA**: Apply to ancient Y-chromosomes to refine migration models
+3. **Functional analysis**: Investigate biological significance of locked SNP regions
+4. **Autosomal extension**: Adapt approach to recombining chromosomes using conditional yyhaps
+
+# Conclusions
+
+Yin-yang haplotypes provide a powerful, unbiased framework for Y-chromosome phylogenetics. Our analysis of 1,223 males from the 1000 Genomes Project identified 171 yyhaps forming a robust tree structure concordant with established haplogroups while revealing novel fine-scale patterns. Extreme yyhaps, such as the 326-SNP block in Tokyo individuals, highlight population-specific histories warranting further investigation. The yyhap approach offers both validation and refinement of traditional phylogenetic methods, with potential applications to quality control and evolutionary inference.
+
+# Acknowledgments
+
+We thank the 1000 Genomes Project consortium for making data publicly available.
+
+# References
+
+<div id="refs"></div>
+
+# Figure Legends
+
+**Figure 1.** Complete yyhap phylogenetic tree showing all 171 haplogroups and their hierarchical relationships. Numbers at nodes indicate the number of individuals in each haplogroup. The tree exhibits four primary branches (a, b, c, d) from the root, partitioning all 1,223 individuals into non-overlapping groups.
+
+**Figure 2.** Root node structure of the yyhap tree showing four major branches (a, b, c, d) and their immediate descendants. Labels show haplogroup code; numbers indicate individuals in each haplogroup.
+
+**Figure 3.** Dendrogram of haplogroup **d**, the lineage closest to the root, showing minimal divergence among predominantly Mediterranean individuals. Branch lengths represent number of differing SNPs; colors indicate population of origin.
+
+**Figure 4.** Subtree of branch c showing the structure of East Asian lineages. Haplogroups N and O are represented, with notable Finnish presence in subbranch c1b.
+
+**Figure 5.** Subtree of branch b showing Eurasian haplogroup diversity, including European (R1a, R1b, I, J) and Native American (Q) lineages.
+
+**Figure 6.** Subtree of branch a showing extensive African haplogroup diversity. This is the most polymorphic branch, containing haplogroups C, D, E, and F with numerous deep subdivisions.
+
+# Supporting Information
+
+**Table S1.** Complete list of 23 potential genotyping errors identified through phylogenetic inconsistency.
+
+**Table S2.** Complete yyhap definitions including all SNP identifiers and genomic positions.
+
+**Table S3.** Individual haplogroup assignments with concordance to ISOGG nomenclature.
+
+**Figures S1-S17.** Representative dendrograms for terminal haplogroups colored by population origin.
+
+All supplementary materials are provided in the separate file **YYhapTree_SupplementaryMaterial.pdf**. Complete data files, R code, and additional analyses are available at [repository URL to be added upon acceptance].
