@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "YYhapTree: Y-Chromosome Phylogenetic Analysis Using the Yin-Yang Haplotype Framework"
+version: 1.0.0
+date-released: 2025-12-05
+abstract: "A comprehensive Y-chromosome phylogenetic analysis pipeline implementing the yin-yang haplotype (yyhap) framework. This software identifies two-allele haplotype patterns, constructs phylogenetic trees, and analyzes within-group diversity across 1,223 male samples from the 1000 Genomes Project, covering 26 global populations."
+authors:
+  - family-names: "[Last Name]"
+    given-names: "[First Name]"
+    affiliation: "Aalborg University"
+    orcid: "https://orcid.org/0000-0000-0000-0000"
+repository-code: "https://github.com/[username]/yyhaptree"
+keywords:
+  - Y chromosome
+  - phylogenetics
+  - haplotype analysis
+  - population genetics
+  - 1000 Genomes
+  - haplogroups
+  - genetic diversity
+license: MIT
+preferred-citation:
+  type: article
+  title: "Y-Chromosome Phylogenetic Analysis Using the Yin-Yang Haplotype Framework"
+  authors:
+    - family-names: "[Last Name]"
+      given-names: "[First Name]"
+  journal: "[Journal Name]"
+  year: 2025
+  status: "in preparation"

@@ -1,0 +1,83 @@
+# YYhapTree - Y-Chromosome Phylogenetic Analysis
+
+# Exclude large data files
+*.RData
+*.rda
+*.rds
+*.Rdata
+
+# Exclude R output files
+*.html
+*.pdf
+*.docx
+
+# Exclude knitr cache
+*_cache/
+*_files/
+
+# Exclude R history and workspace
+.Rhistory
+.RData
+.Rproj.user
+
+# Exclude system files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Exclude temporary files
+*.tmp
+*.bak
+*.log
+
+# Exclude VCF and large genomic data files
+*.vcf
+*.vcf.gz
+*.vcf.gz.tbi
+*.bcf
+*.bam
+*.sam
+*.cram
+
+# Exclude compiled files
+*.o
+*.so
+*.dll
+
+# Exclude IDE files
+.vscode/
+.idea/
+*.Rproj
+
+# Keep important files (negation)
+!README.md
+!LICENSE
+!CITATION.cff
+!.gitignore
+
+# Keep R Markdown source files
+!*.Rmd
+!*.R
+
+# Keep documentation
+!docs/
+
+# Exclude LaTeX temporary files
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*.toc
+*.lof
+*.lot
+
+# Exclude figure source files (EPS) but keep PNG
+*.eps
+
+# Exclude backup files from emacs
+.#*
+\#*\#
