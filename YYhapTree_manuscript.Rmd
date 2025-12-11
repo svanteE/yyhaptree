@@ -68,6 +68,15 @@ for(i in 1:(L-1)){
 }
 names(HapTable)=su1
 names(profs)=su1
+
+# Define helper function for vertex population tables
+inVertex=function(x,m3){
+  h=x$inHg
+  if(length(h)==0) return("No profiles")
+  g=m3[h,8072:8073]
+  g$n=1
+  aggregate(n~.,g,sum)
+}
 ```
 
 # Abstract
