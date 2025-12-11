@@ -365,6 +365,44 @@ Branch **c** shows strong East Asian representation, with sublineages correspond
 
 A particularly striking finding is the Finnish presence in subbranch **c1b** (haplogroup N), with 20 Finnish individuals(c1b2 and c1b3) clustering with East Asian lineages(c1b and c1b1), consistent with known Uralic migrations and the genetic contribution of Asian populations to Finnish ancestry [@lahti2010genetic].
 
+**Example Terminal Haplogroup:**
+
+Terminal haplogroup **c1b3** (haplogroup N) demonstrates the Finnish-East Asian connection:
+
+```{r c1b3-table, echo=FALSE}
+if("c1b3" %in% names(profs) && !is.null(profs[["c1b3"]])) {
+  hg_table <- as.data.frame(table(profs[["c1b3"]]$HG))
+  colnames(hg_table) <- c("ISOGG Haplogroup", "Count")
+  kable(hg_table, caption="Haplogroup c1b3 ISOGG classification")
+}
+```
+
+```{r c1b3-dend, echo=FALSE, fig.cap="Dendrogram of haplogroup c1b3 (N - Finnish/Uralic)", fig.width=8, fig.height=5, out.width="100%", fig.pos="H"}
+if("c1b3" %in% names(HapTable) && !is.null(HapTable[["c1b3"]])) {
+  h=HapTable[["c1b3"]]
+  if(nrow(h) >= 2) {
+    h=h[order(h$ori),]
+    L=dim(h)[2]
+    d1=h[,-c(L-1,L)]
+    di=dist(d1,method = "man")
+    cl=hclust(di,method="single")
+    dend <- as.dendrogram(cl)
+    dend=dend%>%set("labels_cex",.7)
+    dend=set_labels(dend,labels=profs[["c1b3"]]$HG)
+    grouping_factor <- factor(as.character(h$ori))
+    group_levels <- levels(grouping_factor)
+    colors <- brewer.pal(max(3, length(group_levels)), "Set1")
+    label_colors <- colors[as.numeric(grouping_factor)]
+    labels_colors(dend) <- label_colors[order.dendrogram(dend)]
+    par(mar = c(4, 4, 3, 2), xpd = FALSE)
+    plot(dend, main = "Haplogroup c1b3 (N)", cex=.6, ylab="Number of differing SNPs", horiz=FALSE)
+    par(xpd = TRUE)
+    legend("topright", inset = c(0, -0.15), legend = group_levels, fill = colors[1:length(group_levels)], title = "Population", cex=.6, bty="n", ncol=min(3, length(group_levels)))
+    par(mar = c(5, 4, 4, 2) + 0.1, xpd = FALSE)
+  }
+}
+```
+
 ### Branch a: African Diversity
 
 Branch **a** is the most polymorphic, containing numerous deep lineages predominantly of African origin. Figure 6 shows the top of this branch:
