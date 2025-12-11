@@ -73,7 +73,7 @@ names(profs)=su1
 inVertex=function(x,m3){
   h=x$inHg
   if(length(h)==0) return("No profiles")
-  g=m3[h,8072:8073]
+  g=m3[h,8009:8010]  # Columns after 8008 SNPs: ori and HG
   g$n=1
   aggregate(n~.,g,sum)
 }
