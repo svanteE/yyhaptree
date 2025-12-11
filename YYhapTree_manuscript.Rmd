@@ -82,7 +82,11 @@ We introduce the concept of **yin-yang haplotypes** (yyhaps) for Y-chromosome ph
 
 The yyhap framework offers several advantages. First, it provides an unbiased, data-driven method for identifying phylogenetically informative marker sets without prior haplogroup knowledge. Second, hierarchical nesting of yyhaps naturally produces tree topology through subset relationships. Third, violations of expected phylogenetic patterns indicate genotyping errors or rare recombination events, providing built-in quality control. Fourth, computational complexity depends on the number of phylogenetic branches rather than total variants, enabling efficient whole-genome analysis.
 
-We develop and validate the yyhap framework using Y-chromosome data from 1,223 unrelated males representing 26 global populations in the 1000 Genomes Project Phase 3. We demonstrate that yyhaps self-organize into a robust phylogenetic tree with strong concordance to established haplogroup classifications while revealing fine-scale population structure and quality control issues.
+We develop and validate the yyhap framework using Y-chromosome data from 1,223 unrelated males representing 26 global populations in the 1000 Genomes Project Phase 3. We demonstrate that yyhaps self-organize into a robust phylogenetic tree (Figure 1) with strong concordance to established haplogroup classifications while revealing fine-scale population structure and quality control issues.
+
+![Complete yyhap phylogenetic tree showing all 171 haplogroups and their hierarchical relationships](completetree.png){width=100%}
+
+**Figure 1.** Complete yyhap phylogenetic tree for 1,223 males from the 1000 Genomes Project. The tree exhibits 171 hierarchically organized haplogroups with four primary branches (a, b, c, d) from the root. Numbers at nodes indicate individuals assigned to each haplogroup. This data-driven tree structure emerges naturally from yin-yang haplotype nesting patterns without requiring a priori phylogenetic assumptions.
 
 # Materials and Methods
 
