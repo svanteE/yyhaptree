@@ -72,10 +72,14 @@ names(profs)=su1
 # Define helper function for vertex population tables
 inVertex=function(x,m3){
   h=x$inHg
-  if(length(h)==0) return("No profiles")
+  if(length(h)==0) return(data.frame(Message="No profiles"))
   g=m3[h,8009:8010]  # Columns after 8008 SNPs: ori and HG
-  g$n=1
-  aggregate(n~.,g,sum)
+  colnames(g) <- c("Population", "ISOGG Haplogroup")
+  g$Count=1
+  result <- aggregate(Count~., g, sum)
+  result <- result[order(-result$Count),]
+  rownames(result) <- NULL
+  return(result)
 }
 ```
 
