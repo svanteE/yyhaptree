@@ -185,7 +185,7 @@ All analyses were performed in R version 4.3.1 (R Core Team 2023). Data manipula
 
 ### Yyhap Discovery and Coverage
 
-We identified **171 yyhaps** covering **7,294 of 8,071 SNPs** (90.4%) across 1,223 male individuals from 26 global populations. The remaining 777 SNPs (9.6%) either exhibited more than two haplotypes (indicating recurrent mutations or complex phylogenetic patterns) or occurred as singletons not extendable into larger yyhaps.
+We identified **171 yyhaps** covering **7,294 of 8,008 SNPs** (90.4%) across 1,223 male individuals from 26 global populations. The remaining 777 SNPs (9.6%) either exhibited more than two haplotypes (indicating recurrent mutations or complex phylogenetic patterns) or occurred as singletons not extendable into larger yyhaps.
 
 The distribution of yyhap lengths (LODY—Length Of Ding Yang) exhibits substantial heterogeneity:
 
@@ -239,7 +239,7 @@ This distribution strongly reflects continental ancestry patterns, with branch *
 
 ### Branch d: Closest to Root
 
-Branch **d** contains 8 individuals differing from the ancestral state by only one yyhap (LODY=22). These individuals are identical across all 8,071 SNPs except for 5 positions:
+Branch **d** contains 8 individuals differing from the ancestral state by only one yyhap (LODY=22). These individuals are identical across all 8,008 SNPs except for 5 positions:
 
 ```{r branch-d-dendro, fig.cap="Dendrogram of haplogroup d showing minimal divergence", fig.width=6, fig.height=3}
 h=HapTable[["d"]]
@@ -286,9 +286,10 @@ Notably, subbranch **baab** corresponds to haplogroup R1a1a1, common in Eastern 
 Terminal haplogroup **bb4** (haplogroup Q) shows South American representation:
 
 ```{r bb4-table, echo=FALSE}
-if("bb4" %in% names(HapTable) && !is.null(HapTable[["bb4"]])) {
-  h=HapTable[["bb4"]]
-  kable(inVertex(profs[["bb4"]],m3), caption="Haplogroup bb4 population distribution")
+if("bb4" %in% names(profs) && !is.null(profs[["bb4"]])) {
+  hg_table <- as.data.frame(table(profs[["bb4"]]$HG))
+  colnames(hg_table) <- c("ISOGG Haplogroup", "Count")
+  kable(hg_table, caption="Haplogroup bb4 ISOGG classification")
 }
 ```
 
@@ -320,9 +321,10 @@ if("bb4" %in% names(HapTable) && !is.null(HapTable[["bb4"]])) {
 Terminal haplogroup **baaa4aa1** shows Western European concentration:
 
 ```{r baaa4aa1-table, echo=FALSE}
-if("baaa4aa1" %in% names(HapTable) && !is.null(HapTable[["baaa4aa1"]])) {
-  h=HapTable[["baaa4aa1"]]
-  kable(inVertex(profs[["baaa4aa1"]],m3), caption="Haplogroup baaa4aa1 population distribution")
+if("baaa4aa1" %in% names(profs) && !is.null(profs[["baaa4aa1"]])) {
+  hg_table <- as.data.frame(table(profs[["baaa4aa1"]]$HG))
+  colnames(hg_table) <- c("ISOGG Haplogroup", "Count")
+  kable(hg_table, caption="Haplogroup baaa4aa1 ISOGG classification")
 }
 ```
 
@@ -452,7 +454,7 @@ We identified **23 phylogenetic inconsistencies** affecting 23 SNPs across 15 in
 
 **Type II inconsistencies** (n=5): Individual possesses an ancestral yyhap but unexpectedly carries the derived allele at positions that should be fixed in other lineages. For instance, SNP rs56663788_27166 shows constant G in branch ba but A in a single individual within the ancestral haplogroup aaa. This likely reflects either a genotyping error or a rare parallel mutation.
 
-The identification rate of 23 errors among 8,071 SNPs × 1,223 individuals = 9.87 million genotype calls yields an estimated error rate of 0.00023% (2.3 × 10⁻⁶), substantially lower than typical sequencing error rates. This suggests that: (1) the 1000 Genomes Project Phase 3 data exhibit excellent quality, (2) many errors may have been filtered during our initial SNP selection, or (3) some true biological phenomena (rare mutations, gene conversion) are being misclassified as errors.
+The identification rate of 23 errors among 8,008 SNPs × 1,223 individuals = 9.87 million genotype calls yields an estimated error rate of 0.00023% (2.3 × 10⁻⁶), substantially lower than typical sequencing error rates. This suggests that: (1) the 1000 Genomes Project Phase 3 data exhibit excellent quality, (2) many errors may have been filtered during our initial SNP selection, or (3) some true biological phenomena (rare mutations, gene conversion) are being misclassified as errors.
 
 Regardless of the specific mechanisms, the yyhap framework provides systematic error detection capabilities valuable for quality control in large-scale sequencing projects. Traditional quality metrics (read depth, base quality scores) assess technical aspects of sequencing, while phylogenetic consistency checking assesses biological coherence. The combination of both approaches strengthens overall data quality assurance (O'Rawe et al. 2016).
 
