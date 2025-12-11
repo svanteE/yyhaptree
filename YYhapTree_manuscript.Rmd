@@ -268,7 +268,7 @@ Descendants of **d** include South Asian lineages (d1–d4), suggesting ancient 
 
 ### Branch b: Eurasian Diversity
 
-Branch **b** (LODY=104) encompasses 371 individuals primarily from Eurasia. Figure 5 shows the detailed structure of this branch:
+Branch **b** (LODY=104) encompasses 371 individuals primarily from Eurasia. Figure 4 shows the detailed structure of this branch:
 
 ![Detailed structure of branch b showing Eurasian lineages](b.png){width=85%}
 
@@ -570,9 +570,9 @@ We thank the 1000 Genomes Project consortium for making data publicly available.
 
 **Figure 3.** Dendrogram of haplogroup **d**, the lineage closest to the root, showing minimal divergence among predominantly Mediterranean individuals. Branch lengths represent number of differing SNPs; colors indicate population of origin.
 
-**Figure 4.** Subtree of branch c showing the structure of East Asian lineages. Haplogroups N and O are represented, with notable Finnish presence in subbranch c1b.
+**Figure 4.** Subtree of branch b showing Eurasian haplogroup diversity, including European (R1a, R1b, I, J) and Native American (Q) lineages.
 
-**Figure 5.** Subtree of branch b showing Eurasian haplogroup diversity, including European (R1a, R1b, I, J) and Native American (Q) lineages.
+**Figure 5.** Subtree of branch c showing the structure of East Asian lineages. Haplogroups N and O are represented, with notable Finnish presence in subbranch c1b.
 
 **Figure 6.** Subtree of branch a showing extensive African haplogroup diversity. This is the most polymorphic branch, containing haplogroups C, D, E, and F with numerous deep subdivisions.
 
