@@ -36,6 +36,8 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, fig.height
 library(webshot2)
 library(dendextend)
 library(RColorBrewer)
+library(knitr)
+library(kableExtra)
 options(width=100)
 
 # Load data
