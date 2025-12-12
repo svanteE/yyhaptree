@@ -1,6 +1,6 @@
 ---
-title: "Supplementary Material: A Novel Y-Chromosome Phylogeny Based on Yin-Yang Haplotypes"
-author: "Your Name"
+title: "Supplementary Material: A Yin-Yang Haplotype Framework for Y-Chromosome Phylogenetic Inference from High-Throughput Sequencing Data"
+author: "P. Svante Eriksen"
 date: "`r Sys.Date()`"
 output:
   pdf_document:
@@ -645,7 +645,7 @@ if("c1abb1" %in% names(HapTable)) {
 
 The identification of yin-yang haplotypes proceeded through the following steps:
 
-1. **SNP filtering**: From the initial Y-chromosome variants in the 1000 Genomes Phase 3 dataset, we selected 8,071 prevalent SNPs based on:
+1. **SNP filtering**: From the initial Y-chromosome variants in the 1000 Genomes Phase 3 dataset, we selected 8,008 prevalent SNPs based on:
    - Minor allele frequency > 1%
    - Call rate > 95%
    - Located outside pseudoautosomal regions
