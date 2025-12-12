@@ -216,10 +216,6 @@ These large yyhaps define major phylogenetic branches and demonstrate that the y
 
 The complete yyhap tree successfully partitions all 1,223 individuals into 171 hierarchically organized haplogroups with complete phylogenetic resolution (Figure 1). Every individual can be uniquely assigned to a terminal haplogroup based on their deepest derived yyhap, and the tree exhibits perfect consistency: no individual carries a derived yyhap without also possessing all ancestral yyhaps along the path from root to terminal node (with 23 exceptions representing likely genotyping errors, discussed below).
 
-![Complete yyhap phylogenetic tree showing all 171 haplogroups](completetree.png){width=100%}
-
-**Figure 1.** Complete yyhap phylogenetic tree showing all 171 haplogroups. Numbers at nodes indicate the number of individuals in each haplogroup. Four major branches (a, b, c, d) emerge from the root.
-
 ### Four-Way Root Structure
 
 The root node exhibits an unusual four-way split, with four primary branches emerging directly from the ancestral state (Figure 2). This differs from the binary branching pattern typical of phylogenetic trees and may reflect: (1) rapid diversification during early human evolution, (2) incomplete lineage sorting in ancestral populations, or (3) limitations in phylogenetic resolution at deep time scales.
