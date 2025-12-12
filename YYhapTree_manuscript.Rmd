@@ -85,13 +85,13 @@ inVertex=function(x,m3){
 
 # Abstract
 
-We present a novel computational framework for Y-chromosome phylogenetic reconstruction based on yin-yang haplotypes (yyhaps)—maximal sets of SNPs exhibiting only two distinct haplotypes across all sampled individuals. Unlike traditional marker-based approaches that rely on pre-selected informative SNPs, our method systematically identifies nested haplotype patterns directly from high-throughput sequencing data without prior phylogenetic assumptions. Applying this framework to 8,008 high-quality SNPs from 1,223 males in the 1000 Genomes Project Phase 3, we identified 171 yyhaps covering 7,294 SNPs (91.1% of the dataset). These yyhaps self-organize into a hierarchical tree structure partitioning all individuals into non-overlapping haplogroups with strong concordance to established International Society of Genetic Genealogy (ISOGG) nomenclature. The tree exhibits four primary branches from the root, predominantly corresponding to known continental distributions: African diversity (branch a), Eurasian lineages (branches b and c), and a Mediterranean clade near the ancestral state (branch d). Remarkably, we identified extreme yyhaps including one spanning 326 SNPs (24 Mb) found exclusively in 20 Japanese individuals, suggesting strong founder effects or recent demographic history. Phylogenetic inconsistencies in 23 SNPs revealed potential genotyping errors, demonstrating the framework's utility for quality control. The yyhap framework provides a robust, data-driven alternative to traditional Y-chromosome phylogenetics with applications to population genetics, forensic genealogy, and evolutionary inference. Our open-source implementation is available at https://github.com/svanteE/yyhaptree.
+We present a novel computational framework for Y-chromosome phylogenetic reconstruction based on yin-yang haplotypes (yyhaps)—maximal sets of SNPs exhibiting only two distinct haplotypes across all sampled individuals. Unlike traditional marker-based approaches that rely on pre-selected informative SNPs, our method systematically identifies nested haplotype patterns directly from high-throughput sequencing data without prior phylogenetic assumptions. Applying this framework to 8,008 high-quality SNPs from 1,223 males in the 1000 Genomes Project Phase 3, we identified 171 yyhaps covering 7,294 SNPs (91.1% of the dataset). These yyhaps self-organize into a hierarchical tree structure partitioning all individuals into non-overlapping haplogroups with strong concordance to established International Society of Genetic Genealogy (ISOGG) nomenclature. The tree exhibits four primary branches from the root, predominantly corresponding to known continental distributions: African diversity (branch **a**), Eurasian lineages (branches **b** and **c**), and a Mediterranean clade near the ancestral state (branch **d**). Remarkably, we identified extreme yyhaps including one spanning 326 SNPs (24 Mb) found exclusively in 20 Japanese individuals, suggesting strong founder effects or recent demographic history. Phylogenetic inconsistencies in 23 SNPs revealed potential genotyping errors, demonstrating the framework's utility for quality control. The yyhap framework provides a robust, data-driven alternative to traditional Y-chromosome phylogenetics with applications to population genetics, forensic genealogy, and evolutionary inference. Our open-source implementation is available at https://github.com/svanteE/yyhaptree.
 
 # Introduction
 
 The human Y-chromosome serves as a powerful molecular tool for tracing paternal lineages and reconstructing human demographic history due to its strict patrilineal inheritance and absence of recombination across most of its length [@jobling2004human; @jobling2017human]. Traditional Y-chromosome phylogenetic approaches rely on identifying informative SNP markers that define hierarchically organized haplogroups, with nomenclature systems such as the International Society of Genetic Genealogy (ISOGG) catalog providing standardized classification frameworks [@van2014toward]. However, several methodological challenges persist, including ascertainment bias in marker selection, uncertainty in rooting topologies, and computational complexity of analyzing complete genome sequences [@scozzari2014update; @poznik2016punctuated; @jobling2017human].
 
-Recent advances in high-throughput sequencing have enabled comprehensive Y-chromosome variant catalogs from projects such as the 1000 Genomes Project [@1000genomes2015global], providing opportunities for novel analytical frameworks. The absence of recombination implies that SNP combinations should exhibit perfect linkage, with variants inherited as immutable haplotype blocks except for new mutations. This property suggests that systematic analysis of haplotype structure could reveal phylogenetic relationships without requiring a priori marker selection.
+Recent advances in high-throughput sequencing have enabled comprehensive Y-chromosome variant catalogs from projects such as the 1000 Genomes Project [@1000genomes2015global; @wei2013whole], providing opportunities for novel analytical frameworks. The development of calibrated Y-chromosome phylogenies based on whole-genome resequencing [@hallast2015great; @batini2015large] has greatly expanded our understanding of Y-chromosome diversity and demographic history. The absence of recombination implies that SNP combinations should exhibit perfect linkage, with variants inherited as immutable haplotype blocks except for new mutations. This property suggests that systematic analysis of haplotype structure could reveal phylogenetic relationships without requiring a priori marker selection.
 
 We introduce the concept of **yin-yang haplotypes** (yyhaps) for Y-chromosome phylogenetic inference. A yyhap is defined as a maximal set of SNPs where only two distinct haplotypes are observed across all sampled individuals—representing ancestral and derived states—with no additional haplotypic diversity. This definition extends earlier work on haplotype blocks and linkage disequilibrium [@gabriel2002structure] by imposing a strict two-state constraint. For the non-recombining Y-chromosome, yyhaps should form nested hierarchies directly reflecting the true phylogenetic tree.
 
@@ -237,7 +237,7 @@ The four primary branches exhibit distinct characteristics:
 
 This distribution strongly reflects continental ancestry patterns, with branch **a** corresponding to African diversity, branches **b** and **c** representing Out-of-Africa Eurasian lineages, and branch **d** possibly representing an ancient basal lineage with limited modern representation.
 
-### Branch d: Closest to Root
+### Branch **d**: Closest to Root
 
 Branch **d** contains 8 individuals differing from the ancestral state by only one yyhap (LODY=22). These individuals are identical across all 8,008 SNPs except for 5 positions:
 
@@ -266,13 +266,13 @@ Five individuals are identical across all SNPs, with three others differing by s
 
 Descendants of **d** include South Asian lineages (d1–d4), suggesting ancient gene flow between Europe and South Asia [@metspalu2011shared]. ISOGG is subclades of L1.
 
-### Branch b: Eurasian Diversity
+### Branch **b**: Eurasian Diversity
 
 Branch **b** (LODY=104) encompasses 371 individuals primarily from Eurasia. Figure 4 shows the detailed structure of this branch:
 
 ![Detailed structure of branch b showing Eurasian lineages](b.png){width=85%}
 
-**Figure 4.** Branch b showing Eurasian haplogroup diversity.
+**Figure 4.** Branch **b** showing Eurasian haplogroup diversity.
 
 Branch **b** subdivides into:
 
@@ -355,13 +355,13 @@ if("baaa4aa1" %in% names(HapTable) && !is.null(HapTable[["baaa4aa1"]])) {
 }
 ```
 
-### Branch c: East Asian Lineages
+### Branch **c**: East Asian Lineages
 
 Branch **c** shows strong East Asian representation, with sublineages corresponding to haplogroups N and O [@karafet2008new]. Figure 5 shows the detailed structure of this branch:
 
 ![Top of branch c showing East Asian lineages](c.png){width=85%}
 
-**Figure 5.** Top of branch c showing East Asian haplogroup diversity. Only one leaf is displayed.
+**Figure 5.** Top of branch **c** showing East Asian haplogroup diversity. Only one leaf is displayed.
 
 A particularly striking finding is the Finnish presence in subbranch **c1b** (haplogroup N), with 20 Finnish individuals(c1b2 and c1b3) clustering with East Asian lineages(c1b and c1b1), consistent with known Uralic migrations and the genetic contribution of Asian populations to Finnish ancestry [@lahti2010genetic].
 
@@ -403,13 +403,13 @@ if("c1b3" %in% names(HapTable) && !is.null(HapTable[["c1b3"]])) {
 }
 ```
 
-### Branch a: African Diversity
+### Branch **a**: African Diversity
 
 Branch **a** is the most polymorphic, containing numerous deep lineages predominantly of African origin. Figure 6 shows the top of this branch:
 
 ![Detailed structure of branch a showing African diversity](aa.png){width=90%}
 
-**Figure 6.** Top of branch a showing extensive African haplogroup diversity.
+**Figure 6.** Top of branch **a** showing extensive African haplogroup diversity.
 
 This branch includes:
 
@@ -448,7 +448,7 @@ We have developed and validated a novel computational framework for Y-chromosome
 
 ## Comparison with Traditional Y-Chromosome Phylogenetics
 
-Traditional Y-chromosome phylogenetic approaches typically proceed through marker discovery, followed by tree construction using parsimony, maximum likelihood, or Bayesian methods [@jobling2004human; @poznik2016punctuated]. These methods require a priori identification of informative SNPs and assumptions about mutation models and branching processes. In contrast, the yyhap framework directly exploits the linkage structure inherent in non-recombining regions to identify nested haplotype sets that automatically define phylogenetic relationships.
+Traditional Y-chromosome phylogenetic approaches typically proceed through marker discovery, followed by tree construction using parsimony, maximum likelihood, or Bayesian methods [@jobling2004human; @poznik2016punctuated; @wei2013whole]. These methods require a priori identification of informative SNPs and assumptions about mutation models and branching processes. Recent comprehensive resequencing efforts have greatly expanded the Y-chromosome phylogeny [@hallast2015great; @batini2015large], providing robust frameworks against which data-driven approaches can be validated. In contrast, the yyhap framework directly exploits the linkage structure inherent in non-recombining regions to identify nested haplotype sets that automatically define phylogenetic relationships.
 
 ### Advantages of the Yyhap Framework
 
@@ -490,9 +490,9 @@ A significant advantage of the yyhap framework is its capacity for systematic qu
 
 We identified **23 phylogenetic inconsistencies** affecting 23 SNPs across 15 individuals. These fall into two categories:
 
-**Type I inconsistencies** (n=18): Individual possesses a derived yyhap but lacks an expected ancestral yyhap. For example, SNP rs73614834_12233 shows constant T allele in ancestral branch aaa1aaa1aa but C allele in a single individual within descendant haplogroup c1aa1ba2. Since the individual carries multiple derived yyhaps diagnostic of c1aa1ba2, the discrepant C allele at this ancestral position represents a likely genotyping error or rare mutation.
+**Type I inconsistencies** (n=18): Individual possesses a derived yyhap but lacks an expected ancestral yyhap. For example, SNP rs73614834_12233 shows constant T allele in ancestral branch **aaa1aaa1aa** but C allele in a single individual within descendant haplogroup c1aa1ba2. Since the individual carries multiple derived yyhaps diagnostic of c1aa1ba2, the discrepant C allele at this ancestral position represents a likely genotyping error or rare mutation.
 
-**Type II inconsistencies** (n=5): Individual possesses an ancestral yyhap but unexpectedly carries the derived allele at positions that should be fixed in other lineages. For instance, SNP rs56663788_27166 shows constant G in branch ba but A in a single individual within the ancestral haplogroup aaa. This likely reflects either a genotyping error or a rare parallel mutation.
+**Type II inconsistencies** (n=5): Individual possesses an ancestral yyhap but unexpectedly carries the derived allele at positions that should be fixed in other lineages. For instance, SNP rs56663788_27166 shows constant G in branch **ba** but A in a single individual within the ancestral haplogroup aaa. This likely reflects either a genotyping error or a rare parallel mutation.
 
 The identification rate of 23 errors among 8,008 SNPs × 1,223 individuals = 9.87 million genotype calls yields an estimated error rate of 0.00023% (2.3 × 10⁻⁶), substantially lower than typical sequencing error rates. This suggests that: (1) the 1000 Genomes Project Phase 3 data exhibit excellent quality, (2) many errors may have been filtered during our initial SNP selection, or (3) some true biological phenomena (rare mutations, gene conversion) are being misclassified as errors.
 
@@ -570,11 +570,11 @@ We thank the 1000 Genomes Project consortium for making data publicly available.
 
 **Figure 3.** Dendrogram of haplogroup **d**, the lineage closest to the root, showing minimal divergence among predominantly Mediterranean individuals. Branch lengths represent number of differing SNPs; colors indicate population of origin.
 
-**Figure 4.** Subtree of branch b showing Eurasian haplogroup diversity, including European (R1a, R1b, I, J) and Native American (Q) lineages.
+**Figure 4.** Subtree of branch **b** showing Eurasian haplogroup diversity, including European (R1a, R1b, I, J) and Native American (Q) lineages.
 
-**Figure 5.** Subtree of branch c showing the structure of East Asian lineages. Haplogroups N and O are represented, with notable Finnish presence in subbranch c1b.
+**Figure 5.** Subtree of branch **c** showing the structure of East Asian lineages. Haplogroups N and O are represented, with notable Finnish presence in subbranch c1b.
 
-**Figure 6.** Subtree of branch a showing extensive African haplogroup diversity. This is the most polymorphic branch, containing haplogroups C, D, E, and F with numerous deep subdivisions.
+**Figure 6.** Subtree of branch **a** showing extensive African haplogroup diversity. This is the most polymorphic branch, containing haplogroups C, D, E, and F with numerous deep subdivisions.
 
 # Supporting Information
 
