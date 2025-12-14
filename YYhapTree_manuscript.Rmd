@@ -453,7 +453,7 @@ if("abaaa3a" %in% names(HapTable) && !is.null(HapTable[["abaaa3a"]])) {
 }
 ```
 
-Terminal haplogroup **abbb** demonstrates another African lineage:
+Terminal haplogroup **abbb** demonstrates another lineage within branch **a**:
 
 ```{r abbb-table, echo=FALSE}
 if("abbb" %in% names(profs) && !is.null(profs[["abbb"]])) {
