@@ -417,7 +417,7 @@ One extreme example is haplogroup **aaa1aaa1aaa1aaa3a1** with 16 Kenyan individu
 
 **Example Terminal Haplogroups:**
 
-Terminal haplogroup **abaaa3a** shows African representation:
+Terminal haplogroup **abaaa3a** shows South Asian representation:
 
 ```{r abaaa3a-table, echo=FALSE}
 if("abaaa3a" %in% names(profs) && !is.null(profs[["abaaa3a"]])) {
